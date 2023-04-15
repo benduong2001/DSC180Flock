@@ -140,6 +140,7 @@ def do_etl_zipcoords(args):
     path_folder_data_raw = os.path.join(path_folder_data,"raw")
     try:
         from sodapy import Socrata
+        from shapely.geometry import shape
 
         # Unauthenticated client only works with public data sets. Note 'None'
         # in place of application token, and no username or password:
@@ -160,6 +161,7 @@ def do_etl_zipcoords(args):
         # Convert to pandas DataFrame
         results_df = pd.DataFrame.from_records(results)
         results_df.rename(columns={"zcta5ce10":"ZCTA5CE20","the_geom":"geometry"},inplace=True)
+        results_df["geometry"] = results_df["geometry"].apply(lambda x: shape(x))
         print("Extracted {0} zipcodes".format(str(results_df.shape[0])))
         gdf = gpd.GeoDataFrame(results_df, geometry='geometry')
         zipcoords = zipcode_geospatial_data_preparation(gdf)

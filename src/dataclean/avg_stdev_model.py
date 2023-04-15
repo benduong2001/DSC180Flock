@@ -901,7 +901,7 @@ def dataclean(args):
 
 
     # feature importances
-    util.plot_model_pipeline_feature_importances(avg_pipeline, path_folder, 'avg_model_feature_importances.png')
+    #util.plot_model_pipeline_feature_importances(avg_pipeline, path_folder, 'avg_model_feature_importances.png')
     
     # now, this next part is for stdev model
     # this just repeats the same things that the avg model did.
@@ -971,7 +971,7 @@ def dataclean(args):
     confmatplotter.plot(ax=ax)
     fig.savefig(os.path.join(path_folder, "generated_visualizations","sd_model_confusion_matrix.png"))
     # feature importances    
-    util.plot_model_pipeline_feature_importances(sd_pipeline, path_folder, 'sd_model_feature_importances.png')
+    #util.plot_model_pipeline_feature_importances(sd_pipeline, path_folder, 'sd_model_feature_importances.png')
 
 
 ##    # statistical testing
@@ -1047,7 +1047,7 @@ def dataclean(args):
 
 
     # feature importances
-    util.plot_model_pipeline_feature_importances(num_pipeline, path_folder, 'num_model_feature_importances.png')
+    #util.plot_model_pipeline_feature_importances(num_pipeline, path_folder, 'num_model_feature_importances.png')
 
     # pooled model
     # Define the pipeline with preprocessor and PCA
@@ -1102,7 +1102,9 @@ def dataclean(args):
     confmatplotter.plot(ax=ax)
     fig.savefig(os.path.join(path_folder, "generated_visualizations","pooled_model_confusion_matrix.png"))
     # feature importances
-    util.plot_model_pipeline_feature_importances(pooled_pipeline, path_folder, 'pooled_model_feature_importances.png')
+    
+    
+    #util.plot_model_pipeline_feature_importances(pooled_pipeline, path_folder, 'pooled_model_feature_importances.png')
 
 
     #logger.info(list(X.columns))

@@ -164,6 +164,7 @@ def do_etl_zipcoords(args):
         results_df["geometry"] = results_df["geometry"].apply(lambda x: shape(x))
         print("Extracted {0} zipcodes".format(str(results_df.shape[0])))
         gdf = gpd.GeoDataFrame(results_df, geometry='geometry')
+        gdf.crs = "EPSG:4326"
         zipcoords = zipcode_geospatial_data_preparation(gdf)
         file_name_zipcoords = "zipcode_coordinates.csv"
 

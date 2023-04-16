@@ -912,7 +912,7 @@ def dataclean(args):
         ('preprocessor_pipeline', preprocessor),
         #('pca', PCA(n_components=10)),
         #('model',LogisticRegression(class_weight="balanced"))
-        ('model',RandomForestClassifier(3,class_weight="balanced"))
+        ('model',RandomForestClassifier(5,class_weight="balanced"))
     ])
 
     np.random.seed(1)

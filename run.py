@@ -44,6 +44,7 @@ def main_etl(args):
     import src.etl.make_dataset as etl
     etl.main(args)
 
+
 def main_dataclean(args):
     #data_clean_first_time = 1
     features.main(args)
@@ -94,6 +95,8 @@ def main_clear(args):
                     pass
         print(os.listdir(path_folder_i_data))
 
+
+
 def main(targets):
     #base_path_folder = "../../"
     #path_folder = os.getcwd()
@@ -127,6 +130,9 @@ def main(targets):
             main_clear(args)
         if target in ["test-data"]:
             args["path_folder_data"] = test_path_folder_data
+
+
+
 
 if __name__ == "__main__":
     targets = sys.argv[1:]

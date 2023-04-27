@@ -69,7 +69,8 @@ class Tasks:
     def configure_dbt_yamls(self):
         """
         Configures the dbt's profiles and project yaml with the appropriate configs
-        """        path_file_database = self.args["path_file_database"]
+        """
+        path_file_database = self.args["path_file_database"]
         path_file_profile_yaml = "src/dataclean/dbt_flock/profile.yml"
         with open(path_file_profile_yaml, 'r') as f:
             profile_yaml = yaml.safe_load(f)

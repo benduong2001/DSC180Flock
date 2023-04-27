@@ -47,7 +47,7 @@ def main_etl(args):
 
 def main_dataclean(args):
     #data_clean_first_time = 1
-    from . import dag; dag.main(args); assert False;
+    import dag; dag.main(args); assert False;
     #features.main(args)
 
     

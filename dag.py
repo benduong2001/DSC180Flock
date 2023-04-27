@@ -14,6 +14,8 @@ class Tasks:
     meant to hold specific functions for the PythonOperator
     as well as hold or reference intermediately created variables and constants
     """
+    def __init__(self, args):
+        self.args = args
 
     def setup_database(self):
         """
@@ -116,7 +118,7 @@ def main(args):
 
     dag = DAG('flock_dag', default_args=default_args, schedule_interval=None)
 
-    workflow = Tasks()
+    workflow = Tasks(args)
     
     # sql db creation
     task_setup_database = PythonOperator(

@@ -1,0 +1,20 @@
+config-version: 2
+models:
+  oa:
+    materialized: table
+    schema: main
+    sql: ''
+  oa_offers_temp:
+    materialized: table
+    schema: main
+    sql: ''
+  oa_orders_temp:
+    materialized: table
+    schema: main
+    sql: ''
+name: my_dbt_project
+profile: default
+vars:
+  explode_references: 0
+  filtering_ftl: 0
+version: 1.0.0

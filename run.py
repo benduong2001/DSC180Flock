@@ -48,6 +48,12 @@ def main_etl(args):
 def main_dataclean(args):
     #data_clean_first_time = 1
     features.main(args)
+    do_workflow = 1
+    if do_workflow == 1:
+        import pipeline
+        pipeline.main(args)
+
+    
 
 def main_model(args):
     model.main(args)
@@ -94,8 +100,6 @@ def main_clear(args):
                 except:
                     pass
         print(os.listdir(path_folder_i_data))
-
-
 
 def main(targets):
     #base_path_folder = "../../"

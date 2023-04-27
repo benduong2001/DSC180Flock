@@ -47,11 +47,8 @@ def main_etl(args):
 
 def main_dataclean(args):
     #data_clean_first_time = 1
-    features.main(args)
-    do_workflow = 1
-    if do_workflow == 1:
-        import pipeline
-        pipeline.main(args)
+    from . import dag; dag.main(args); assert False;
+    #features.main(args)
 
     
 

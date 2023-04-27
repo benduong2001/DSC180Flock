@@ -123,34 +123,34 @@ def main(args):
     
     # sql db creation
     task_setup_database = PythonOperator(
-        task_id="setup_database"
-        python_callable=workflow.setup_database
-        dag=dag
+        task_id="setup_database",
+        python_callable=workflow.setup_database,
+        dag=dag,
     )
     
     # sql table
     task_import_csv_to_sql = PythonOperator(
-        task_id="import_csv_to_sql"
-        python_callable=workflow.setup_database
-        dag=dag
+        task_id="import_csv_to_sql",
+        python_callable=workflow.setup_database,
+        dag=dag,
     )    
     # dbt yaml load
     task_configure_dbt_yamls = PythonOperator(
-        task_id="configure_dbt_yamls"
-        python_callable=workflow.configure_dbt_yamls
-        dag=dag
+        task_id="configure_dbt_yamls",
+        python_callable=workflow.configure_dbt_yamls,
+        dag=dag,
     )
     
     # dbt run
     task_run_dbtflock1 = BashOperator(
-        task_id="run_dbtflock1"
-        bash_command="src/dataclean/run_dbtflock1.sh"
-        dag=dag        
+        task_id="run_dbtflock1",
+        bash_command="src/dataclean/run_dbtflock1.sh",
+        dag=dag,        
     )
     task_export_dbt_sql_to_df = BashOperator(
-        task_id="export_dbt_sql_to_df"
-        python_callable=workflow.export_dbt_sql_to_df
-        dag=dag        
+        task_id="export_dbt_sql_to_df",
+        python_callable=workflow.export_dbt_sql_to_df,
+        dag=dag,       
     )
 
     task_import_csv_to_sql.set_upstream(task_setup_database)

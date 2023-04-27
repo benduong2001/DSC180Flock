@@ -147,7 +147,7 @@ def main(args):
         bash_command="src/dataclean/run_dbtflock1.sh",
         dag=dag,        
     )
-    task_export_dbt_sql_to_df = BashOperator(
+    task_export_dbt_sql_to_df = PythonOperator(
         task_id="export_dbt_sql_to_df",
         python_callable=workflow.export_dbt_sql_to_df,
         dag=dag,       

@@ -16,4 +16,4 @@ CREATE TABLE offer_acceptance_offers (
     RECOMMENDED_LOAD boolean,
     VALID boolean         
 );
-COPY offer_acceptance_offers FROM {path_file_csv} WITH CSV HEADER;
+COPY offer_acceptance_offers FROM '{path_file_csv}' WITH CSV HEADER;

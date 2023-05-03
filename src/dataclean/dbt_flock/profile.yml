@@ -1,5 +1,0 @@
-default:
-  dev:
-    path: ''
-    type: duckdb
-  target: dev

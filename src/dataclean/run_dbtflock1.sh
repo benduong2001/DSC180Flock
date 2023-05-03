@@ -2,5 +2,5 @@
 
 cd src
 cd dataclean
-cd dbt_flock
+cd dbtflock
 dbt run

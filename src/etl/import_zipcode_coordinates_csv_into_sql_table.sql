@@ -5,4 +5,4 @@ CREATE TABLE zipcode_coordinates (
     X_COORD double ,
     Y_COORD double      
 );
-COPY zipcode_coordinates FROM {path_file_csv} WITH CSV HEADER;
+COPY zipcode_coordinates FROM '{path_file_csv}' WITH CSV HEADER;

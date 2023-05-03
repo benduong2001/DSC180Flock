@@ -22,9 +22,8 @@ class Tasks:
         Creates the sql database that this airflow dag and dbt will use
         """
         path_folder = self.args["path_folder"]
-        path_folder_data_raw = os.path.join(path_folder, "data", "raw")
-        file_name_database = "data.db"
-        path_file_database = os.path.join(path_folder_data_raw, file_name_database)
+        file_name_database = "flockdata.db"
+        path_file_database = os.path.join(path_folder,"src", "dataclean", "dbtflock", "data",file_name_database)
         self.args["path_file_database"] = path_file_database
 
         sql_dbms = duckdb
@@ -68,31 +67,18 @@ class Tasks:
 
     def configure_dbt_yamls(self):
         """
-        Configures the dbt's profiles and project yaml with the appropriate configs
+        Configures the dbt's project yaml with the appropriate configs
         """
-        path_file_database = self.args["path_file_database"]
-        path_file_profile_yaml = "src/dataclean/dbt_flock/profile.yml"
-        with open(path_file_profile_yaml, 'r') as f:
-            profile_yaml = yaml.safe_load(f)
-            f.close()
-        profile_yaml["default"]["dev"]["path"] = path_file_database
-        yaml_string = yaml.dump(profile_yaml)
-        with open(path_file_profile_yaml, "w") as f:
-            f.write(yaml_string)
-            f.close()
-
         
-        path_file_project_yaml = "dbt_flock/project.yml"
+        path_file_project_yaml = "dbtflock/dbt_project.yml"
         with open(path_file_project_yaml, 'r') as f:
             project_yaml = yaml.safe_load(f)
             f.close()
-        filtering_ftl = 0
-        explode_references = 1
-        project_yaml["vars"]["filtering_ftl"] = filtering_ftl
-        project_yaml["vars"]["explode_references"] = explode_references              
-        project_yaml["models"]["oa_orders_temp"]["sql"] = "dbt_flock/models/create_oa_orders_temp.sql"
-        project_yaml["models"]["oa_offers_temp"]["sql"] = "dbt_flock/models/create_oa_orders_temp.sql"
-        project_yaml["models"]["oa"]["sql"] = "dbt_flock/models/create_oa.sql"
+        params = {
+        filtering_ftl: 0
+        explode_references: 1
+        }
+        project_yaml["vars"] = params
         yaml_string = yaml.dump(project_yaml)
         with open(path_file_project_yaml, "w") as f:
             f.write(yaml_string)

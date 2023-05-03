@@ -1,6 +1,4 @@
-
-DROP TABLE IF EXISTS oa_offers_temp;
-CREATE TABLE IF NOT EXISTS oa_offers_temp AS
+{{ config(materialized='table') }}
 
 -- applies a data integrity check that removes rows that aren't valid. 
 -- Specifically, rows where offer type is quote should have a reference number column with only one reference 
@@ -27,8 +25,7 @@ replace(
 replace(
 replace(
 OFF0.REFERENCE_NUMBER
-, '
-', '')
+, '\n', '')
 , '"', '')
 , ' ', '')
 , '[', '')
@@ -56,4 +53,3 @@ FROM offer_references OFF0
 SELECT
 OFF0.*
 FROM offers_unnested OFF0
-;

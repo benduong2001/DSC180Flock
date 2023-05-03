@@ -19,4 +19,4 @@ CREATE TABLE offer_acceptance_orders (
     ESTIMATED_COST_AT_ORDER double,
     TRANSPORT_MODE varchar(20)
 );
-COPY offer_acceptance_orders FROM {path_file_csv} WITH CSV HEADER;
+COPY offer_acceptance_orders FROM '{path_file_csv}' WITH CSV HEADER;

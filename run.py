@@ -46,9 +46,9 @@ def main_etl(args):
 
 
 def main_dataclean(args):
-    #data_clean_first_time = 1
-    import dag; dag.main(args); assert False;
-    #features.main(args)
+    do_airflow = 0
+    if do_airflow == 1: import dag; dag.main(args); return;
+    features.main(args)
 
     
 

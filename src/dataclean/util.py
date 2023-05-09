@@ -197,6 +197,8 @@ class Metro_Cluster:
         self.opt_pivot_x_column_names = opt_pivot_x_column_names
         self.opt_pivot_y_column_names = opt_pivot_y_column_names
         return opt_pivot
+    def generate_groupwise_column_names(self, prefix):
+        return [prefix + self.group_column_name+"="+str(i) for i in range(self.group_amount)]
 
     def get_proximities(
         self,

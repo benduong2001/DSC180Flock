@@ -1,20 +1,13 @@
 
-
+-- add leadtime column with integrity checks
 WITH 
-
 temp_oa_joined_cleaned AS
 (
-SELECT * FROM {{ ref('temp_oa_joined_cleaned')}}
+SELECT * FROM {{ ref('temp_oa_joined_cleaned') }}
 ),
 
-
-orders_lead_time AS
-(
-SELECT 
-OA1.REFERENCE_NUMBERS1,
-OA1.LEAD_TIME
-FROM 
-(SELECT
+orders_lead_time AS (
+SELECT
 OA0.REFERENCE_NUMBERS1,
 (
 CASE 
@@ -30,12 +23,15 @@ AS LEAD_TIME
 FROM
 temp_oa_joined_cleaned OA0
 WHERE OA0.LOAD_DELIVERED_FROM_OFFER = true
-) OA1
-WHERE 
-(OA1.LEAD_TIME IS NOT NULL)
-OR (OA1.LEAD_TIME = 0.0)
 ),
 
+orders_lead_time_cleaned AS 
+(
+SELECT
+OLT0.* FROM orders_lead_time OLT0
+WHERE 
+LEAD_TIME IS NOT NULL OR LEAD_TIME > 0.0
+),
 
 offers_aggregated AS
 (
@@ -49,7 +45,7 @@ temp_oa_joined_cleaned OA0
 GROUP BY OA0.REFERENCE_NUMBERS1
 ),
 
-oa as (
+oa AS (
 SELECT
 ORD0.*,
 OFF_A0.LOG_RATE_USD, OFF_A0.SD_LOG_RATE_USD, OFF_A0.ORDER_OFFER_AMOUNT,
@@ -57,7 +53,7 @@ ORD_LT0.LEAD_TIME
 FROM {{ ref('oa_orders_temp') }} ORD0
 LEFT OUTER JOIN offers_aggregated OFF_A0 
 ON ORD0.REFERENCE_NUMBERS1 = OFF_A0.REFERENCE_NUMBERS1
-LEFT OUTER JOIN orders_lead_time ORD_LT0 
+LEFT OUTER JOIN orders_lead_time_cleaned ORD_LT0 
 ON ORD0.REFERENCE_NUMBERS1 = ORD_LT0.REFERENCE_NUMBERS1
 )
 

@@ -52,4 +52,4 @@ FROM offer_references OFF0
 
 SELECT
 OFF0.*
-FROM offers_unnested OFF0
+FROM offers_unnested OFF0;

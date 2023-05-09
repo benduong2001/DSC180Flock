@@ -1,3 +1,6 @@
+
+{{ config(materialized='table') }}
+
 WITH
 temp_oa_joined AS
 (
@@ -6,6 +9,9 @@ ORD0.REFERENCE_NUMBERS1,
 {% if filtering_ftl != 1 %}
 ORD0.TRANSPORT_MODE,
 {% endif %}
+ORD0.ORIGIN_3DIGIT_ZIP,
+ORD0.DESTINATION_3DIGIT_ZIP,
+ORD0.X_COORD_ORIG, ORD0.X_COORD_DEST, ORD0.Y_COORD_ORIG, ORD0.Y_COORD_DEST,
 ORD0.TEMP_TIME_UNIT_SECOND, 
 ORD0.ORDER_DATETIME_PST,
 ORD0.TIME_BETWEEN_ORDER_AND_DEADLINE,
@@ -35,7 +41,7 @@ EXCEPT (SELECT OA1.* FROM temp_oa_joined OA1 WHERE OA1.TRANSPORT_MODE = 'FTL' AN
 {% else %}
 WHERE OA0.OFFER_TYPE != 'quote' -- assumes transport_mode column isn't present and all of order's rows are FTL anyways
 {% endif %}
-),
+)
 
 SELECT * FROM temp_oa_joined_cleaned;
 

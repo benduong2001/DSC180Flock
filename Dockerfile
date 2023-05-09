@@ -22,7 +22,9 @@ USER jovyan
 
 # RUN conda install -y babypandas geopandas
 
-RUN pip install --no-cache-dir geopandas numpy pandas matplotlib scipy scikit-learn==1.1 bs4 requests seaborn gdown shapely apache-airflow   jinja2 duckdb dbt pyyaml dbt-duckdb
+RUN pip install --no-cache-dir geopandas numpy pandas matplotlib scipy scikit-learn==1.1 bs4 requests seaborn gdown shapely jinja2 pyyaml dbt-duckdb duckdb
+RUN pip install --no-cache-dir pip install "apache-airflow==2.6.0"  --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.6.0/constraints-3.7.txt"
+
 
 # Override command to disable running jupyter notebook at launch
 CMD ["/bin/bash"]

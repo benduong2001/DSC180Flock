@@ -160,8 +160,8 @@ orders_unnested AS
 (
 SELECT 
 ORD0.*, 
--- dbt jinja if-statement: if explode_references was set to 1, unnest the reference numbers, else reuse the pre-list-converted
-{% if explode_references == 1 %}
+-- dbt jinja if-statement: if dont_explode_references was set to 0, unnest the reference numbers, else reuse the pre-list-converted
+{% if dont_explode_references == 0 %}
 UNNEST(ORD0.REFERENCE_NUMBERS) AS REFERENCE_NUMBERS1 
 {% else %}
 ORD0.REFERENCE_NUMBER AS REFERENCE_NUMBERS1

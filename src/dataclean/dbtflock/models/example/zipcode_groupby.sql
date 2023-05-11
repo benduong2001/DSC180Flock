@@ -74,7 +74,7 @@ zipcode_groupby ZCGB0
 INNER JOIN 
 zipcode_groupby_orders_level ZCGB1
 ON ZCGB0.ZIP = ZCGB1.ZIP
-;
+
 
 
 

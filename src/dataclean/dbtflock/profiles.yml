@@ -2,5 +2,5 @@ default:
   outputs:
    dev:
      type: "duckdb"
-     path: "/data/data.db"
+     path: "/data/flockdata.db"
   target: "dev"

@@ -43,5 +43,5 @@ WHERE OA0.OFFER_TYPE != 'quote' -- assumes transport_mode column isn't present a
 {% endif %}
 )
 
-SELECT * FROM temp_oa_joined_cleaned;
+SELECT * FROM temp_oa_joined_cleaned
 

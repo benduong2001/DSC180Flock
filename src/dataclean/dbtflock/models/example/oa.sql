@@ -1,63 +1,16 @@
 
+{{ config(materialized='table') }}
+
 -- add leadtime column with integrity checks
-WITH 
-temp_oa_joined_cleaned AS
-(
-SELECT * FROM {{ ref('temp_oa_joined_cleaned') }}
-),
-
-orders_lead_time AS (
-SELECT
-OA0.REFERENCE_NUMBERS1,
-(
-CASE 
-WHEN
-(least(OA0.ORDER_DATETIME_PST,OA0.CREATED_ON_HQ) = OA0.ORDER_DATETIME_PST)
-THEN
-(CAST(date_diff(OA0.TEMP_TIME_UNIT_SECOND, OA0.ORDER_DATETIME_PST,OA0.CREATED_ON_HQ) AS DECIMAL)/(OA0.TIME_BETWEEN_ORDER_AND_DEADLINE + 0.0001))
-ELSE
-NULL
-END
-)
-AS LEAD_TIME
-FROM
-temp_oa_joined_cleaned OA0
-WHERE OA0.LOAD_DELIVERED_FROM_OFFER = true
-),
-
-orders_lead_time_cleaned AS 
-(
-SELECT
-OLT0.* FROM orders_lead_time OLT0
-WHERE 
-LEAD_TIME IS NOT NULL OR LEAD_TIME > 0.0
-),
-
-offers_aggregated AS
-(
-SELECT
-OA0.REFERENCE_NUMBERS1,
-STDDEV_POP(OA0.RATE_USD) AS SD_LOG_RATE_USD,
-AVG(LN(OA0.RATE_USD+1)) AS LOG_RATE_USD,
-COUNT(*) AS ORDER_OFFER_AMOUNT
-FROM
-temp_oa_joined_cleaned OA0
-GROUP BY OA0.REFERENCE_NUMBERS1
-),
-
-oa AS (
+WITH oa AS (
 SELECT
 ORD0.*,
 OFF_A0.LOG_RATE_USD, OFF_A0.SD_LOG_RATE_USD, OFF_A0.ORDER_OFFER_AMOUNT,
 ORD_LT0.LEAD_TIME
 FROM {{ ref('oa_orders_temp') }} ORD0
-LEFT OUTER JOIN offers_aggregated OFF_A0 
+LEFT OUTER JOIN {{ ref('offers_aggregated') }} OFF_A0 
 ON ORD0.REFERENCE_NUMBERS1 = OFF_A0.REFERENCE_NUMBERS1
-LEFT OUTER JOIN orders_lead_time_cleaned ORD_LT0 
+LEFT OUTER JOIN {{ ref('orders_lead_time_cleaned') }} ORD_LT0 
 ON ORD0.REFERENCE_NUMBERS1 = ORD_LT0.REFERENCE_NUMBERS1
 )
-
-SELECT OA0.*
-FROM
-oa OA0
-;
+SELECT OA0.* FROM oa OA0

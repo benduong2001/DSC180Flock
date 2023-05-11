@@ -155,7 +155,7 @@ def do_etl_zipcoords(args):
 
         # First 2000 results, returned as JSON from API / converted to Python list of
         # dictionaries by sodapy.
-        results = client.get("3bfy-58gg",limit=50_000)
+        results = client.get("3bfy-58gg",limit=35_000)
 
 
         # Convert to pandas DataFrame

@@ -41,8 +41,8 @@ offers_unnested AS
 (
 SELECT 
 OFF0.*,
--- dbt jinja if-statement: if explode_references was set to 1, unnest the reference numbers, else reuse the pre-list-converted
-{% if explode_references == 1 %}
+-- dbt jinja if-statement: if dont_explode_references was set to 0, unnest the reference numbers, else reuse the pre-list-converted
+{% if dont_explode_references == 0 %}
 unnest(OFF0.REFERENCE_NUMBERS) AS REFERENCE_NUMBERS1
 {% else %}
 OFF0.REFERENCE_NUMBER AS REFERENCE_NUMBERS1
@@ -52,4 +52,4 @@ FROM offer_references OFF0
 
 SELECT
 OFF0.*
-FROM offers_unnested OFF0;
+FROM offers_unnested OFF0

@@ -44,6 +44,9 @@ import matplotlib.pyplot as plt
 plt.style.use("ggplot")
 from matplotlib import collections  as mc
 
+import yaml
+
+import src.dataclean.util as util
 
 
 
@@ -101,15 +104,14 @@ class Tasks:
         sql = f.read().format(path_file_csv=path_file_csv)
         self.cursor.sql(sql)
         self.db_conn.commit()
-        f.close()     
-
+        f.close()
 
     def configure_dbt_yamls(self):
         """
         Configures the dbt's project yaml with the appropriate configs
         """
         
-        path_file_project_yaml = "dbtflock/dbt_project.yml"
+        path_file_project_yaml = os.path.join(self.args["path_folder"],"src","dataclean", "dbtflock", "dbt_project.yml")
         with open(path_file_project_yaml, 'r') as f:
             project_yaml = yaml.safe_load(f)
             f.close()
@@ -123,13 +125,24 @@ class Tasks:
         columns_result = self.cursor.sql("SELECT COLUMN_NAME FROM Information_schema.columns where Table_name like 'oa'")
         columns = pd.DataFrame(columns_result.fetchall())
 
-        df_result = cursor.sql("SELECT * FROM oa")
+        df_result = self.cursor.sql("SELECT * FROM oa")
         df = pd.DataFrame(df_result.fetchall())
         df.columns = columns.iloc[:,0].values.tolist()
+        print("DBT passed", df.shape)
         oa = df
         self.oa = oa
 
+    def retrieve_dbt_sql_to_df(self, df_name):
+        columns_result = self.cursor.sql("SELECT COLUMN_NAME FROM Information_schema.columns where Table_name like '{0}'".format(df_name))
+        columns = pd.DataFrame(columns_result.fetchall())
+
+        df_result = self.cursor.sql("SELECT * FROM {0}".format(df_name))
+        df = pd.DataFrame(df_result.fetchall())
+        df.columns = columns.iloc[:,0].values.tolist()
+        return df
+    
     def add_metro_cluster(self):
+        path_folder = self.args["path_folder"]
         oa = self.oa
         metro_cluster = util.temp_build_metro_cluster(oa)
         metro_cluster.plot_map(path_folder=path_folder)
@@ -147,7 +160,11 @@ class Tasks:
 
         self.metro_cluster = metro_cluster
         self.oa = oa
-
+    def run_dbtflock1(self):
+        import subprocess
+        path_file_shell_script = os.path.join(self.args["path_folder"],"src","dataclean","dbtflock","run_dbtflock.sh")
+        subprocess.call(path_file_shell_script,shell=True)
+        
     def submodels(self):
         args = self.args
         path_folder = args["path_folder"]
@@ -162,13 +179,6 @@ class Tasks:
         logger = logging.getLogger()
 
 
-        
-        column_names_metadata = 
-        oa_numerical_column_names = column_names_metadata["oa"]["numerical"]
-        oa_orders_boolean_column_names = column_names_metadata["oa_orders"]["boolean"]
-        oa_orders_numerical_column_names = column_names_metadata["oa_orders"]["numerical"]
-        oa_orders_loggable_numerical_column_names = column_names_metadata["oa_orders"]["loggable"]
-        oa_orders_categorical_column_names = column_names_metadata["oa_orders"]["categorical"]
         weight_column_name = "LEAD_TIME"
 
 
@@ -202,8 +212,13 @@ class Tasks:
 
         selected_column_names = (
             numerical_column_names_1 + numerical_column_names_2 + categorical_column_names_0 + target_column_names + [weight_column_name])
-        reference_number_column = oa["REFERENCE"]
+        oa = self.oa
+        reference_number_column = oa["REFERENCE_NUMBER"]
         oa = oa[selected_column_names]
+
+        print(oa[["LOG_RATE_USD","SD_LOG_RATE_USD","LEAD_TIME"]].isnull().mean(axis=0))
+
+        oa = oa.dropna(subset=["LOG_RATE_USD","SD_LOG_RATE_USD","LEAD_TIME"], how="any")
         
         temp_zscore_step = []
         # temp_zscore_step = [('scaler', StandardScaler())]
@@ -243,7 +258,7 @@ class Tasks:
             ('model',LinearRegression())
         ])
         np.random.seed(1)
-        target_column_name="LOG(RATE_USD)"
+        target_column_name="LOG_RATE_USD"
         temp_target_column_names = target_column_names.copy()
         temp_target_column_names.remove(target_column_name)
         input_df = oa.drop(columns=temp_target_column_names)    
@@ -277,7 +292,7 @@ class Tasks:
             ('model',RandomForestClassifier(5,class_weight="balanced"))
         ])
         np.random.seed(1)
-        target_column_name="SD_LOG(RATE_USD)"
+        target_column_name="SD_LOG_RATE_USD"
         temp_target_column_names = target_column_names.copy()
         temp_target_column_names.remove(target_column_name)
         input_df = oa.drop(columns=temp_target_column_names)
@@ -347,32 +362,25 @@ class Tasks:
 def main(args):
     args["dp_params"] = {
         "filtering_ftl": 0,
-        "explode_references": 1,
+        "dont_explode_references": 0,
         "add_features_for_visuals_map_zips": 0,
         }
     workflow = Tasks(args)
     workflow.setup_database()
+    workflow.import_csv_to_sql()
     workflow.configure_dbt_yamls()
     workflow.run_dbtflock1()
     workflow.export_dbt_sql_to_df()
+    #print("oa_offers_temp", workflow.retrieve_dbt_sql_to_df("oa_offers_temp")["RATE_USD"].isnull().mean())
+    #print("temp_oa_joined_cleaned", workflow.retrieve_dbt_sql_to_df("temp_oa_joined_cleaned")["RATE_USD"].isnull().mean())
+    #print("orders_lead_time_cleaned", workflow.retrieve_dbt_sql_to_df("orders_lead_time_cleaned")["LEAD_TIME"].isnull().mean())
+    #print("offers_aggregated", workflow.retrieve_dbt_sql_to_df("offers_aggregated")["RATE_USD"].isnull().mean())
+    #print("zipcode_groupby", workflow.retrieve_dbt_sql_to_df("zipcode_groupby").isnull().mean())
+    print(workflow.oa.isnull().mean(axis=0))
     workflow.add_metro_cluster()
+    workflow.submodels()
     
-
-
-    metro_cluster = util.temp_build_metro_cluster(oa)
-    metro_cluster.plot_map(path_folder=path_folder)
-    orig_proximity_column_names = ["ORIG_"+metro_cluster.group_column_name+"="+str(i) for i in range(metro_cluster.group_amount)]
-    orig_metro_cluster_columns = util.temp_build_metro_cluster_columns(oa, metro_cluster,"X_COORD_ORIG","Y_COORD_ORIG",orig_proximity_column_names)
-    oa = util.add_metro_cluster_columns(oa, orig_metro_cluster_columns)
-
-    oa_numerical_column_names += orig_proximity_column_names
-
-    dest_proximity_column_names = ["DEST_"+metro_cluster.group_column_name+"="+str(i) for i in range(metro_cluster.group_amount)]
-    dest_metro_cluster_columns = util.temp_build_metro_cluster_columns(oa, metro_cluster,"X_COORD_DEST","Y_COORD_DEST",dest_proximity_column_names)
-    logger.info("\n row loss metro cluster 2")
-    oa = util.add_metro_cluster_columns(oa, dest_metro_cluster_columns)
-    #logger.info("oa.shape", oa.shape)
-    oa_numerical_column_names += dest_proximity_column_names
+    assert False
     
 
     default_args = {

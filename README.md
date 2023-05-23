@@ -8,7 +8,7 @@ git clone https://github.com/KeaganBenson/DSC180Flock.git
 Then open Anaconda Prompt, for the first time, enter the new folder, and run the following to create a new conda environment with the requirements.txt. 
 ```
 cd dsc180flock
-conda create --name flock_env --file requirements.txt
+conda create --name flock_env python=3.11 --file requirements.txt
 conda activate flock_env
 python run.py all
 ```

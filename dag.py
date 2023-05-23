@@ -22,7 +22,7 @@ from sklearn.decomposition import PCA
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, f1_score
 from sklearn.metrics import ConfusionMatrixDisplay
 
 from sklearn.model_selection import cross_val_score
@@ -43,7 +43,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 plt.style.use("ggplot")
 from matplotlib import collections  as mc
-
+import pickle
 import yaml
 
 import src.dataclean.util as util
@@ -68,6 +68,11 @@ class Tasks:
         path_file_database = os.path.join(path_folder,"src", "dataclean", "dbtflock", "data",file_name_database)
         self.args["path_file_database"] = path_file_database
 
+        try:
+            os.remove(path_file_database)
+        except:
+            pass
+        
         sql_dbms = duckdb
 
         db_conn = sql_dbms.connect(path_file_database)
@@ -125,12 +130,16 @@ class Tasks:
         columns_result = self.cursor.sql("SELECT COLUMN_NAME FROM Information_schema.columns where Table_name like 'oa'")
         columns = pd.DataFrame(columns_result.fetchall())
 
-        df_result = self.cursor.sql("SELECT * FROM oa")
+        
+
+        df_result = self.cursor.sql("SELECT * FROM oa;")
         df = pd.DataFrame(df_result.fetchall())
+        #print(pd.Series(df.isnull().mean(axis=0)).sort_values(ascending=False).head(10))
         df.columns = columns.iloc[:,0].values.tolist()
         print("DBT passed", df.shape)
         oa = df
         self.oa = oa
+        #print(pd.Series(oa.isnull().mean(axis=0)).sort_values(ascending=False).head(10))
 
     def retrieve_dbt_sql_to_df(self, df_name):
         columns_result = self.cursor.sql("SELECT COLUMN_NAME FROM Information_schema.columns where Table_name like '{0}'".format(df_name))
@@ -159,11 +168,25 @@ class Tasks:
         #oa_numerical_column_names += dest_proximity_column_names
 
         self.metro_cluster = metro_cluster
+        path_folder = self.args["path_folder"]
+        path_file_metro_cluster = os.path.join(path_folder, "data","temp","metro_cluster.pkl")
+        with open(path_file_metro_cluster, "wb") as file:
+            pickle.dump(metro_cluster, file)
         self.oa = oa
-    def run_dbtflock1(self):
+
+    def run_dbtflock(self):
         import subprocess
-        path_file_shell_script = os.path.join(self.args["path_folder"],"src","dataclean","dbtflock","run_dbtflock.sh")
-        subprocess.call(path_file_shell_script,shell=True)
+
+        self.db_conn.close()
+        self.cursor.close()
+        
+        subprocess.run(["dbt", "run"], cwd=os.path.join(self.args["path_folder"],"src","dataclean","dbtflock"))
+        #import src.dataclean.dbtflock.run_dbtflock_python as rdfp
+        #rdfp.main()
+        db_conn = duckdb.connect(self.args["path_file_database"])
+        self.db_conn = db_conn
+        cursor = db_conn.cursor()
+        self.cursor = cursor
         
     def submodels(self):
         args = self.args
@@ -213,12 +236,13 @@ class Tasks:
         selected_column_names = (
             numerical_column_names_1 + numerical_column_names_2 + categorical_column_names_0 + target_column_names + [weight_column_name])
         oa = self.oa
+        print(pd.Series(oa.isnull().mean(axis=0)).sort_values(ascending=False).head(10))
+        #assert 0
+        print("oa.shape", oa.shape)
+        oa = oa.dropna(subset=["LOG_RATE_USD","SD_LOG_RATE_USD","LEAD_TIME"], how="any")
         reference_number_column = oa["REFERENCE_NUMBER"]
         oa = oa[selected_column_names]
 
-        print(oa[["LOG_RATE_USD","SD_LOG_RATE_USD","LEAD_TIME"]].isnull().mean(axis=0))
-
-        oa = oa.dropna(subset=["LOG_RATE_USD","SD_LOG_RATE_USD","LEAD_TIME"], how="any")
         
         temp_zscore_step = []
         # temp_zscore_step = [('scaler', StandardScaler())]
@@ -284,7 +308,12 @@ class Tasks:
         ax.set_ylabel("Predicted Avg Rates Test Y-values")
         ax.scatter(y_test,predictions,alpha=0.3,s=5)
         fig.savefig(os.path.join(path_folder,'generated_visualizations','avg_model_r2_scatter.png'),bbox_inches='tight')
+        util.plot_model_pipeline_feature_importances(avg_pipeline, path_folder, 'avg_model_feature_importances.png')
 
+        path_folder = self.args["path_folder"]
+        path_file_avg_pipeline = os.path.join(path_folder, "data","temp","avg_pipeline.pkl")
+        with open(path_file_avg_pipeline, "wb") as file:
+            pickle.dump(avg_pipeline, file)
         
         # now, this next part is for stdev model
         sd_pipeline = Pipeline([
@@ -313,6 +342,25 @@ class Tasks:
         self.sd_pipeline = sd_pipeline
         get_sd_by_tier = np.vectorize(lambda x: sd_median*int(x))
 
+        predictions = sd_pipeline.predict(X_test)
+        logger.info("\n Accuracy of StDev Model: {0}".format(str(np.mean(predictions==y_test))))
+        logger.info("\n StDev Model Confusion Matrix:")
+        logger.info("\n "+str(np.matrix(confusion_matrix(y_test,predictions,normalize="true"))))
+        logger.info("\n F1 Score of StDev Model: {0}".format(str(f1_score(y_test,predictions))))
+                
+        confmatplotter = ConfusionMatrixDisplay(confusion_matrix(y_test,predictions,normalize="true"))
+        fig, ax = plt.subplots(figsize=(8, 8))
+        ax.set_title("Test Set SD Model Confusion Matrix")
+        confmatplotter.plot(ax=ax)
+        fig.savefig(os.path.join(path_folder, "generated_visualizations","sd_model_confusion_matrix.png"))
+        util.plot_model_pipeline_feature_importances(sd_pipeline, path_folder, 'sd_model_feature_importances.png')
+    
+        path_folder = self.args["path_folder"]
+        path_file_sd_pipeline = os.path.join(path_folder, "data","temp","sd_pipeline.pkl")
+        with open(path_file_sd_pipeline, "wb") as file:
+            pickle.dump(sd_pipeline, file)
+        
+
         output_df = pd.DataFrame()
         output_df["REFERENCE_NUMBER"] = reference_number_column
         avg_prediction_column = avg_pipeline.predict(avg_X)
@@ -325,40 +373,6 @@ class Tasks:
         path_file_temp_avg_stdev = os.path.join(path_folder_data_temp, file_name_temp_avg_stdev)
         output_df.to_csv(path_file_temp_avg_stdev,index=False)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def main(args):
     args["dp_params"] = {
         "filtering_ftl": 0,
@@ -369,18 +383,26 @@ def main(args):
     workflow.setup_database()
     workflow.import_csv_to_sql()
     workflow.configure_dbt_yamls()
-    workflow.run_dbtflock1()
+    #print("oa_offers", workflow.retrieve_dbt_sql_to_df("offer_acceptance_offers").shape)
+    #print("oa_orders", workflow.retrieve_dbt_sql_to_df("offer_acceptance_orders").shape)
+    #print("zipcoords", workflow.retrieve_dbt_sql_to_df("zipcode_coordinates").shape)
+    #workflow.cursor.close()
+    #workflow.db_conn.close()
+
+    #assert False
+    #workflow.run_dbtflock1()
+    workflow.run_dbtflock()
     workflow.export_dbt_sql_to_df()
     #print("oa_offers_temp", workflow.retrieve_dbt_sql_to_df("oa_offers_temp")["RATE_USD"].isnull().mean())
     #print("temp_oa_joined_cleaned", workflow.retrieve_dbt_sql_to_df("temp_oa_joined_cleaned")["RATE_USD"].isnull().mean())
     #print("orders_lead_time_cleaned", workflow.retrieve_dbt_sql_to_df("orders_lead_time_cleaned")["LEAD_TIME"].isnull().mean())
     #print("offers_aggregated", workflow.retrieve_dbt_sql_to_df("offers_aggregated")["RATE_USD"].isnull().mean())
     #print("zipcode_groupby", workflow.retrieve_dbt_sql_to_df("zipcode_groupby").isnull().mean())
-    print(workflow.oa.isnull().mean(axis=0))
+    #print(workflow.oa.isnull().mean(axis=0))
     workflow.add_metro_cluster()
     workflow.submodels()
     
-    assert False
+    return None
     
 
     default_args = {
@@ -413,9 +435,9 @@ def main(args):
     )
     
     # dbt run
-    task_run_dbtflock1 = BashOperator(
-        task_id="run_dbtflock1",
-        bash_command="src/dataclean/run_dbtflock1.sh",
+    task_run_dbtflock = BashOperator(
+        task_id="run_dbtflock",
+        bash_command="src/dataclean/dbtflock/run_dbtflock.sh",
         dag=dag,        
     )
     task_export_dbt_sql_to_df = PythonOperator(
@@ -426,8 +448,8 @@ def main(args):
 
     task_import_csv_to_sql.set_upstream(task_setup_database)
     task_configure_dbt_yamls.set_upstream(task_import_csv_to_sql)
-    task_run_dbtflock1.set_upstream(task_configure_dbt_yamls)
-    task_export_dbt_sql_to_df.set_upstream(task_run_dbtflock1)
+    task_run_dbtflock.set_upstream(task_configure_dbt_yamls)
+    task_export_dbt_sql_to_df.set_upstream(task_run_dbtflock)
 
 
     

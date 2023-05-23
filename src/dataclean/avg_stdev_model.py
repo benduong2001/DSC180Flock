@@ -643,6 +643,11 @@ class Temp_OA_Data_Cleaning:
             #logger.info("oa.shape", oa.shape)
             oa_numerical_column_names += dest_proximity_column_names
 
+            path_folder = self.args["path_folder"]
+            path_file_metro_cluster = os.path.join(path_folder, "data","temp","metro_cluster.pkl")
+            with open(path_file_metro_cluster, "wb") as file:
+                pickle.dump(metro_cluster, file)
+
 
         # manage lead-time
 
@@ -898,7 +903,10 @@ def dataclean(args):
     ax.scatter(y_test,predictions,alpha=0.3,s=5)
     fig.savefig(os.path.join(path_folder,'generated_visualizations','avg_model_r2_scatter.png'),bbox_inches='tight')
 
-
+    path_folder = self.args["path_folder"]
+    path_file_avg_pipeline = os.path.join(path_folder, "data","temp","avg_pipeline.pkl")
+    with open(path_file_avg_pipeline, "wb") as file:
+        pickle.dump(avg_pipeline, file)
 
     # feature importances
     #util.plot_model_pipeline_feature_importances(avg_pipeline, path_folder, 'avg_model_feature_importances.png')
@@ -973,27 +981,30 @@ def dataclean(args):
     # feature importances    
     #util.plot_model_pipeline_feature_importances(sd_pipeline, path_folder, 'sd_model_feature_importances.png')
 
+    path_folder = self.args["path_folder"]
+    path_file_sd_pipeline = os.path.join(path_folder, "data","temp","sd_pipeline.pkl")
+    with open(path_file_sd_pipeline, "wb") as file:
+        pickle.dump(sd_pipeline, file)
+    # statistical testing
+    do_statistical_testing = 1
+    if do_statistical_testing:
+        
+        from scipy.stats import permutation_test
+        numerical_column_names_ = numerical_column_names_0 + numerical_column_names_1 + numerical_column_names_2
+        for numerical_column_name in numerical_column_names_:
+            numerical_column = sd_X[numerical_column_name]
+            binary_column = y
+            # Compute the absolute difference of the group-wise means
+            observed_diff = np.abs(np.mean(numerical_column[y == 1]) - np.mean(numerical_column[y == 0]))
+            # Run a permutation test with 1000 permutations
+            perm_diffs = []
+            for i in range(50):
+                perm_binary_column = np.random.permutation(binary_column)
+                perm_diff = abs(np.mean(numerical_column[perm_binary_column == 1]) - np.mean(numerical_column[perm_binary_column == 0]))
+                perm_diffs.append(perm_diff)
 
-##    # statistical testing
-##    do_statistical_testing = 0
-##    if do_statistical_testing:
-##        
-##        from scipy.stats import permutation_test
-##        numerical_column_names_ = numerical_column_names_0 + numerical_column_names_1 + numerical_column_names_2
-##        for numerical_column_name in numerical_column_names_:
-##            numerical_column = sd_X[numerical_column_name]
-##            binary_column = y
-##            # Compute the absolute difference of the group-wise means
-##            observed_diff = np.abs(np.mean(numerical_column[y == 1]) - np.mean(numerical_column[y == 0]))
-##            # Run a permutation test with 1000 permutations
-##            perm_diffs = []
-##            for i in range(50):
-##                perm_binary_column = np.random.permutation(binary_column)
-##                perm_diff = abs(np.mean(numerical_column[perm_binary_column == 1]) - np.mean(numerical_column[perm_binary_column == 0]))
-##                perm_diffs.append(perm_diff)
-##
-##            p_value = np.mean(perm_diffs>=observed_diff)
-##            logger.info(numerical_column_name, "P-value:", p_value)
+            p_value = np.mean(perm_diffs>=observed_diff)
+            logger.info(numerical_column_name, "P-value:", p_value)
         
 
     do_num_pool_models = 0

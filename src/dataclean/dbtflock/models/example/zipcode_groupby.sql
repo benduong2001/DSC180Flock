@@ -1,6 +1,9 @@
+
+{{ config(materialized='table') }}
+
 WITH temp_oa_joined_cleaned1 AS 
 (
-SELECT * FROM temp_oa_joined_cleaned
+SELECT * FROM {{ ref('temp_oa_joined_cleaned') }}
 --WHERE RATE_USD IS NOT NULL
 ),
 
@@ -39,12 +42,12 @@ all_zipcoords_orders_level AS
 SELECT OA0.ORIGIN_3DIGIT_ZIP AS ZIP, 
 OA0.X_COORD_ORIG AS X_COORD, OA0.Y_COORD_ORIG AS Y_COORD
 , OA0.ORDER_OFFER_AMOUNT
-FROM oa OA0
+FROM {{ ref('oa') }} OA0
 UNION ALL
 SELECT OA1.DESTINATION_3DIGIT_ZIP AS ZIP, 
 OA1.X_COORD_DEST AS X_COORD, OA1.Y_COORD_DEST AS Y_COORD
 , OA1.ORDER_OFFER_AMOUNT
-FROM oa OA1
+FROM {{ ref('oa') }}OA1
 ),
 
 zipcode_groupby_orders_level AS

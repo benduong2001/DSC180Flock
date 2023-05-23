@@ -47,8 +47,14 @@ def main_etl(args):
 
 
 def main_dataclean(args):
-    do_airflow = 1
-    if do_airflow == 1: import dag; dag.main(args); return;
+    do_dag = 1
+    if do_dag == 1:
+        import dag
+        import src.dataclean.EstimatingOffersModel as eom
+        dag.main(args)
+        eom.main(args)
+        features.build_features(args)
+        return
     features.main(args)
 
     
@@ -98,6 +104,11 @@ def main_clear(args):
                 except:
                     pass
         print(os.listdir(path_folder_i_data))
+    try:
+        path_file_database = os.path.join(args["path_folder"], "src", "dataclean", "dbtflock", "data", "flockdata.db")
+        os.remove(path_file_database)
+    except:
+        pass
 
 def main(targets):
     #base_path_folder = "../../"

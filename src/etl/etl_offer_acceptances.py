@@ -71,16 +71,13 @@ def get_county_weather_data(args):
     path_folder_data_raw = os.path.join(path_folder_data,"raw")
     folder_name_county_weather_data = "county_weather_data"
     zipped_folder_name_county_weather_data = "county_weather_data.zip"
-    county_weather_data_google_drive_url = "https://drive.google.com/file/d/19gdziTpRmPo2iCCOI2BLwm79eOnM89Be/view?usp=sharing"
-    county_weather_data_google_drive_url = "https://drive.google.com/file/d/1lIKQvEVC6yJ5pUMdIjapbsRdIiRJeKLx/view?usp=sharing"
+    county_weather_data_google_drive_url = args["access"]["gdrive_links"]["county_weather_data_google_drive_url"]
 
     path_zipped_folder_county_weather_data = os.path.join(path_folder_data_raw,zipped_folder_name_county_weather_data)
     path_folder_county_weather_data = os.path.join(path_folder_data_raw,folder_name_county_weather_data)
 
     
     os.mkdir(path_folder_county_weather_data)
-    #path_file_county_weather_data = os.path.join(path_folder_county_weather_data,file_name_county_weather_data)
-
     download_file_from_google_drive_share_link_to_file_path(county_weather_data_google_drive_url, path_zipped_folder_county_weather_data)
 
     print(os.listdir(path_folder_data_raw))
@@ -91,19 +88,6 @@ def get_county_weather_data(args):
         f.extractall(path_folder_data_raw)
         f.close()
 
-def get_county_census_data(args):
-    path_folder_data = args["path_folder_data"]
-    path_folder_data_raw = os.path.join(path_folder_data,"raw")
-    folder_name_county_census_data = "county_census_data"
-    file_name_county_census_data = "county_census_data.xlsx"
-    county_census_data_google_drive_url = "https://docs.google.com/spreadsheets/d/1-U0ZA8b1sYI1RlUIIvik_PELOz92TQaR/edit?usp=sharing&ouid=118247173478054444170&rtpof=true&sd=true"
-    county_census_data_google_drive_url = "https://docs.google.com/spreadsheets/d/1-U0ZA8b1sYI1RlUIIvik_PELOz92TQaR/edit?usp=sharing&ouid=118247173478054444170&rtpof=true&sd=true"
-    
-    path_folder_county_census_data = os.path.join(path_folder_data_raw,folder_name_county_census_data)
-    os.mkdir(path_folder_county_census_data)
-    path_file_county_census_data = os.path.join(path_folder_county_census_data,file_name_county_census_data)
-
-    download_file_from_google_drive_share_link_to_file_path(county_census_data_google_drive_url, path_file_county_census_data)
 
 def get_county_census_file_download_href(soup):
     temp_finder = soup.find_all('span', text = " United States ")[0]
@@ -132,7 +116,7 @@ def get_county_census_data(args):
         with open(path_file_county_census_data, 'wb') as f:
             f.write(response.content)
     except:
-        county_census_data_google_drive_url = "https://docs.google.com/spreadsheets/d/1-U0ZA8b1sYI1RlUIIvik_PELOz92TQaR/edit?usp=sharing&ouid=118247173478054444170&rtpof=true&sd=true"
+        county_census_data_google_drive_url = args["access"]["gdrive_links"]["county_census_data_google_drive_url"]
         download_file_from_google_drive_share_link_to_file_path(county_census_data_google_drive_url, path_file_county_census_data)
 
 def main(args):
@@ -141,22 +125,21 @@ def main(args):
     # determine if test or not:
     is_test_boolean = ("test" in path_folder_data)
     
-    # get orders data
-    offer_acceptance_offers_google_drive_url = "https://drive.google.com/file/d/1rDVII-KGJixTcYOL-eqHtDjmz_CRr5oA/view?usp=sharing"
-    #offer_acceptance_offers_google_drive_url = "https://drive.google.com/file/d/17FWCWqGkhIwM7nHHLUNo1Ej2GnEJebmO/view?usp=sharing"
+    # get offers data
+    offer_acceptance_offers_google_drive_url = args["access"]["gdrive_links"]["offer_acceptance_offers_google_drive_url"]
     file_name_offer_acceptance_offers = "offer_acceptance_offers.csv"
     path_file_offer_acceptance_offers = get_file_path(path_folder_data_raw, file_name_offer_acceptance_offers)
     download_file_from_google_drive_share_link_to_file_path(offer_acceptance_offers_google_drive_url, path_file_offer_acceptance_offers)
 
     # get offers data
-    offer_acceptance_orders_google_drive_url = "https://drive.google.com/file/d/1-NkSnizxZPbSdgqru6r7ATU2NxmcoyhR/view?usp=sharing"
+    offer_acceptance_orders_google_drive_url = args["access"]["gdrive_links"]["offer_acceptance_orders_google_drive_url"]
     file_name_offer_acceptance_orders = "offer_acceptance_orders.csv"
     path_file_offer_acceptance_orders = get_file_path(path_folder_data_raw, file_name_offer_acceptance_orders)
     download_file_from_google_drive_share_link_to_file_path(offer_acceptance_orders_google_drive_url, path_file_offer_acceptance_orders)
 
     if (is_test_boolean == False):
         # get carrier data
-        carrier_data_google_drive_url = "https://drive.google.com/file/d/1F7Be4CTD64JqUjUwS_e5nt0bfU8s8p6D/view?usp=sharing"
+        carrier_data_google_drive_url = args["access"]["gdrive_links"]["carrier_data_google_drive_url"]
         file_name_carrier_data = "carrier_data.csv"
         path_file_carrier_data = get_file_path(path_folder_data_raw, file_name_carrier_data)
         download_file_from_google_drive_share_link_to_file_path(carrier_data_google_drive_url, path_file_carrier_data)

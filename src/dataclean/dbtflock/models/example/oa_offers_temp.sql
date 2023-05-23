@@ -25,7 +25,8 @@ replace(
 replace(
 replace(
 OFF0.REFERENCE_NUMBER
-, '\n', '')
+, chr(10), '') 
+-- newline
 , '"', '')
 , ' ', '')
 , '[', '')
@@ -43,9 +44,9 @@ SELECT
 OFF0.*,
 -- dbt jinja if-statement: if dont_explode_references was set to 0, unnest the reference numbers, else reuse the pre-list-converted
 {% if dont_explode_references == 0 %}
-unnest(OFF0.REFERENCE_NUMBERS) AS REFERENCE_NUMBERS1
-{% else %}
 OFF0.REFERENCE_NUMBER AS REFERENCE_NUMBERS1
+{% else %}
+unnest(OFF0.REFERENCE_NUMBERS) AS REFERENCE_NUMBERS1
 {% endif %}
 FROM offer_references OFF0
 )

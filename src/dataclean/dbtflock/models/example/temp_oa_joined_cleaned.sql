@@ -6,6 +6,7 @@ temp_oa_joined AS
 (
 SELECT
 ORD0.REFERENCE_NUMBERS1,
+-- if not filtering only for FTL, then keep transport mode
 {% if filtering_ftl != 1 %}
 ORD0.TRANSPORT_MODE,
 {% endif %}
@@ -37,9 +38,9 @@ OA0.*
 FROM
 temp_oa_joined OA0
 {% if filtering_ftl == 1 %}
-EXCEPT (SELECT OA1.* FROM temp_oa_joined OA1 WHERE OA1.TRANSPORT_MODE = 'FTL' AND OA1.OFFER_TYPE != 'quote')
-{% else %}
 WHERE OA0.OFFER_TYPE != 'quote' -- assumes transport_mode column isn't present and all of order's rows are FTL anyways
+{% else %}
+EXCEPT (SELECT OA1.* FROM temp_oa_joined OA1 WHERE OA1.TRANSPORT_MODE = 'FTL' AND OA1.OFFER_TYPE != 'quote')
 {% endif %}
 )
 

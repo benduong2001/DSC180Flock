@@ -145,9 +145,10 @@ def do_etl_zipcoords(args):
         # Unauthenticated client only works with public data sets. Note 'None'
         # in place of application token, and no username or password:
         # Example authenticated client (needed for non-public datasets):
-        apptoken = "i7Q2t7NxfLdwov2PK0emgU1f2"
-        username = "bduongjqo@gmail.com"
-        password = "R0mce+on1"
+        
+        apptoken = args["access"]["socrata"]["apptoken"]
+        username = args["access"]["socrata"]["username"]
+        password = args["access"]["socrata"]["password"]
         client = Socrata("evergreen.data.socrata.com",
                           apptoken,
                           username=username,
@@ -170,7 +171,8 @@ def do_etl_zipcoords(args):
 
         path_file_zipcoords = os.path.join(path_folder_data_raw,file_name_zipcoords)
         zipcoords.to_csv(path_file_zipcoords, index=False)
-    except Exception as e: 
+    except Exception as e:
+        # if extracting by API fails, then webscrape from online government census geo-data website
         print(e)
         # zipcodes
         url_shapefile_location = "https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.2020.html"
@@ -219,10 +221,4 @@ def main(args):
     # counties
     if (is_test_boolean == False):
         do_etl_counties(args)
-
-#main({"path_folder_data":os.path.join(path_folder,'data')})
-#
-#
-
-#main({"path_folder_data":os.path.join(path_folder,'test','test-data')})
 
